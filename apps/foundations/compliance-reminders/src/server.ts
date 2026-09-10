@@ -1,0 +1,33 @@
+import "dotenv/config";
+import express from "express";
+import { PrismaClient } from "@prisma/client";
+import { complianceItemsRouter } from "./routes/complianceItems";
+import { ReminderService } from "./services/reminderService";
+import { LogEmailSender } from "./lib/emailSender";
+import { startDailyScheduler } from "./scheduler";
+
+const app = express();
+app.use(express.json());
+
+app.use((req, res, next) => {
+  if (req.path === "/health") return next();
+  const key = req.header("x-internal-api-key");
+  if (!key || key !== process.env.INTERNAL_API_KEY) {
+    return res.status(401).json({ error: "Missing or invalid x-internal-api-key" });
+  }
+  next();
+});
+
+const prisma = new PrismaClient();
+const service = new ReminderService(prisma, new LogEmailSender());
+
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
+app.use(complianceItemsRouter(service));
+
+const port = process.env.PORT ? Number(process.env.PORT) : 4003;
+if (require.main === module) {
+  startDailyScheduler(service);
+  app.listen(port, () => console.log(`compliance-reminders listening on :${port}`));
+}
+
+export { app };

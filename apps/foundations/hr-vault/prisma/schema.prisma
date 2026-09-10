@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum VaultAction {
+  READ
+  WRITE
+  SHARE
+  DELETE
+}
+
+model VaultDocument {
+  id                  String   @id @default(uuid())
+  owner               String   // email of the HR user who stored it
+  documentType        String   // e.g. "signed-offer-letter", "policy-doc"
+  associatedPerson    String?  // employee/candidate email or ID this document relates to
+  storageRef          String   // pointer to where the actual file bytes live
+  createdAt           DateTime @default(now())
+  sharedWith          SharedGrant[]
+  auditLog            VaultAuditEntry[]
+}
+
+model SharedGrant {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    VaultDocument @relation(fields: [documentId], references: [id])
+  granteeEmail String  // the specific external recipient this doc is shared to
+  grantedAt   DateTime @default(now())
+  grantedBy   String
+
+  @@unique([documentId, granteeEmail])
+}
+
+model VaultAuditEntry {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    VaultDocument @relation(fields: [documentId], references: [id])
+  actorEmail  String
+  actorRole   String
+  action      VaultAction
+  allowed     Boolean
+  reason      String?
+  timestamp   DateTime @default(now())
+}

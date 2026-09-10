@@ -1,0 +1,73 @@
+// Document & Approval Workflow Engine — isolated database, per PROGRAM-OVERVIEW.md
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  GENERATED
+  PENDING_APPROVAL
+  REJECTED
+  APPROVED
+  SENT
+  SIGNED
+  FILED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model DocumentInstance {
+  id            String   @id @default(uuid())
+  templateType  String   // e.g. "offer-letter" | "appointment-letter" | "relieving-letter"
+  data          Json     // fields used to render the template
+  recipientEmail String
+  status        DocumentStatus @default(GENERATED)
+  renderedBody  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  approvals     ApprovalStep[]
+  auditLog      AuditLogEntry[]
+  signature     SignatureRecord?
+}
+
+model ApprovalStep {
+  id            String   @id @default(uuid())
+  documentId    String
+  document      DocumentInstance @relation(fields: [documentId], references: [id])
+  order         Int
+  approverEmail String
+  status        ApprovalStatus @default(PENDING)
+  comment       String?
+  decidedAt     DateTime?
+
+  @@unique([documentId, order])
+}
+
+model AuditLogEntry {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    DocumentInstance @relation(fields: [documentId], references: [id])
+  action      String   // e.g. "generated", "approved", "rejected", "sent", "signed", "filed"
+  actor       String   // email or "system"
+  timestamp   DateTime @default(now())
+  metadata    Json?
+}
+
+model SignatureRecord {
+  id            String   @id @default(uuid())
+  documentId    String   @unique
+  document      DocumentInstance @relation(fields: [documentId], references: [id])
+  signerName    String
+  signedAt      DateTime @default(now())
+  ipAddress     String?
+  provider      String   // "standalone" | "keka"
+}

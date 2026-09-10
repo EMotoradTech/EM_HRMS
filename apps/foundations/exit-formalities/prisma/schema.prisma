@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ExitStatus {
+  INITIATED
+  DOCUMENTS_GENERATED
+  APPROVALS_CLEARED
+  SENT
+  SIGNED
+  ASSETS_CLEARED
+  COMPLETE
+}
+
+model ExitCase {
+  id              String   @id @default(uuid())
+  employeeEmail   String
+  designation     String
+  lastWorkingDay  DateTime
+  status          ExitStatus @default(INITIATED)
+  documentId      String?  // the document-engine relieving-letter instance id
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
