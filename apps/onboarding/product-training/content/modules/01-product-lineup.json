@@ -1,0 +1,18 @@
+{
+  "key": "product-lineup",
+  "title": "Product Lineup Overview",
+  "order": 1,
+  "lessonBody": "PLACEHOLDER CONTENT — product team to replace with the real lineup overview: current e-bike and e-scooter models, target segments, and how they're positioned relative to each other.",
+  "quiz": [
+    {
+      "question": "PLACEHOLDER — e.g. Which of these is an EMotorad product category?",
+      "options": ["Electric bicycle", "Electric car", "Electric scooter (two-wheeler)", "Electric truck"],
+      "correctIndex": 0
+    },
+    {
+      "question": "PLACEHOLDER — swap for a real lineup question once content lands",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 2
+    }
+  ]
+}

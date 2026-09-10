@@ -1,0 +1,62 @@
+// Pulse Survey — own isolated database (em_hrms_pulse_survey)
+//
+// ANONYMITY BY DESIGN: SurveyResponse deliberately has NO identifying field
+// (no name, email, employee ID). The only per-period duplicate-submission guard
+// is `dedupeTokenHash` — a one-way SHA-256 hash of (secret + employee identifier
+// + period) computed in src/dedupeToken.ts. Given only the hash, the original
+// employee identifier cannot be recovered. No IP address or high-precision
+// timestamp is stored either, since in a small team/department that combined
+// with other fields could re-identify a respondent.
+//
+// The list of who a survey was SENT to (needed to deliver the email) is
+// intentionally NOT modeled here — sending is handled by src/sender.ts against
+// whatever recipient list is passed in at send time (e.g. from Keka later),
+// and that list is never joined against this table.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Cadence {
+  MONTHLY
+  DAILY
+}
+
+model SurveyDefinition {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "monthly-pulse", "daily-mood"
+  title     String
+  cadence   Cadence
+  // Questions live here as JSON: [{ id, type: "multiple_choice"|"scale"|"free_text", prompt, options? }]
+  questions Json
+  createdAt DateTime @default(now())
+}
+
+// Tracks when each survey was last sent, purely for the scheduler's cadence
+// check (src/scheduler.ts). Contains no employee data whatsoever.
+model SurveySendLog {
+  surveyKey  String   @id
+  lastSentAt DateTime
+}
+
+model SurveyResponse {
+  id             String   @id @default(cuid())
+  surveyKey      String
+  // Period this response belongs to: "2026-09" for a monthly pulse, "2026-09-10" for
+  // a daily mood check. Used for both aggregation ("this month's results") and dedup scope.
+  period         String
+  // One-way hash — see comment above. NOT reversible to an identity.
+  dedupeTokenHash String
+  // The actual answers: [{ questionId, value }]. No identifying field anywhere on this model.
+  answers        Json
+  submittedAt    DateTime @default(now())
+
+  // Prevents a second submission from the same person in the same period, without
+  // ever storing who that person is.
+  @@unique([surveyKey, period, dedupeTokenHash])
+}
