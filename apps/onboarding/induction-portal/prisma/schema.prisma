@@ -1,0 +1,43 @@
+// Induction Portal — own isolated database (em_hrms_induction_portal)
+// Content itself (policy text, culture book, etc.) is NOT stored here — it lives in
+// /content as Markdown/JSON files (or a future CRUD layer) so HR can edit it without a
+// developer. This schema only tracks per-joiner progress against that content.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SectionStatus {
+  NOT_STARTED
+  STARTED
+  COMPLETED
+}
+
+model Joiner {
+  id        String            @id @default(cuid())
+  email     String            @unique
+  name      String
+  createdAt DateTime          @default(now())
+  progress  SectionProgress[]
+}
+
+// One row per (joiner, section-key). sectionKey matches the `key` in the content
+// front-matter (see src/contentLoader.ts) rather than a DB foreign key, since content
+// lives outside the database and can be added/renamed by HR independently.
+model SectionProgress {
+  id          String        @id @default(cuid())
+  joinerId    String
+  sectionKey  String
+  status      SectionStatus @default(NOT_STARTED)
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  joiner Joiner @relation(fields: [joinerId], references: [id])
+
+  @@unique([joinerId, sectionKey])
+}

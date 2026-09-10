@@ -1,0 +1,8 @@
+{
+  "key": "daily-mood",
+  "title": "Daily Mood Check",
+  "cadence": "DAILY",
+  "questions": [
+    { "id": "mood", "type": "scale", "prompt": "How are you feeling today?", "scaleMin": 1, "scaleMax": 5 }
+  ]
+}

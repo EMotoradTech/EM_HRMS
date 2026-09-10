@@ -1,0 +1,11 @@
+{
+  "key": "monthly-pulse",
+  "title": "Monthly Pulse Survey",
+  "cadence": "MONTHLY",
+  "questions": [
+    { "id": "q1", "type": "scale", "prompt": "Overall, how are you feeling about work this month?", "scaleMin": 1, "scaleMax": 5 },
+    { "id": "q2", "type": "multiple_choice", "prompt": "Do you feel you have what you need to do your job well?", "options": ["Yes", "Mostly", "Not really", "No"] },
+    { "id": "q3", "type": "scale", "prompt": "How manageable is your current workload?", "scaleMin": 1, "scaleMax": 5 },
+    { "id": "q4", "type": "free_text", "prompt": "Anything you'd like leadership to know? (optional)" }
+  ]
+}

@@ -1,0 +1,28 @@
+// Product Training — own isolated database (em_hrms_product_training)
+// Module/lesson/quiz content lives in /content as JSON, not in this schema —
+// this only tracks per-joiner completion and quiz results.
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model ModuleProgress {
+  id          String    @id @default(cuid())
+  joinerId    String
+  moduleKey   String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+
+  // Quiz result, if the module has a quiz. Null score means "no quiz taken yet."
+  quizScore     Int?
+  quizTotal     Int?
+  quizPassed    Boolean?
+  quizAttemptedAt DateTime?
+
+  @@unique([joinerId, moduleKey])
+}
