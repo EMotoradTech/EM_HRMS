@@ -1,6 +1,7 @@
 // Document & Approval Workflow Engine — isolated database, per PROGRAM-OVERVIEW.md
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
 }
 
 datasource db {
