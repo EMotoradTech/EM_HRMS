@@ -1,0 +1,29 @@
+# Single local Postgres server hosting one database per leaf app.
+# Databases are created by scripts/init-multi-db.sh on first boot.
+version: "3.8"
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: em_hrms
+      POSTGRES_PASSWORD: em_hrms_local
+      POSTGRES_MULTIPLE_DATABASES: >-
+        em_hrms_document_engine,
+        em_hrms_hr_vault,
+        em_hrms_compliance_reminders,
+        em_hrms_asset_management,
+        em_hrms_exit_formalities,
+        em_hrms_resume_screening,
+        em_hrms_bgv_tracking,
+        em_hrms_offer_letters,
+        em_hrms_induction_portal,
+        em_hrms_product_training,
+        em_hrms_pulse_survey
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-multi-db.sh:/docker-entrypoint-initdb.d/init-multi-db.sh
+volumes:
+  pgdata:

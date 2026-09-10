@@ -1,0 +1,13 @@
+{
+  "name": "em-hrms",
+  "private": true,
+  "workspaces": [
+    "apps/foundations/*",
+    "apps/hiring/*",
+    "apps/onboarding/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  }
+}
