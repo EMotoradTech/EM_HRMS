@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetStatus {
+  IN_STOCK
+  ISSUED
+  RETURNED
+  LOST
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  type        String   // e.g. "laptop", "id-card", "sim"
+  identifier  String   @unique // serial number / asset tag
+  status      AssetStatus @default(IN_STOCK)
+  createdAt   DateTime @default(now())
+  issuances   IssuanceRecord[]
+}
+
+model IssuanceRecord {
+  id            String   @id @default(uuid())
+  assetId       String
+  asset         Asset    @relation(fields: [assetId], references: [id])
+  employeeEmail String
+  issuedAt      DateTime @default(now())
+  returnedAt    DateTime?
+}

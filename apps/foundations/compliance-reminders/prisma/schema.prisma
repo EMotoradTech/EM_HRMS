@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RecurrenceType {
+  MONTHLY
+}
+
+model ComplianceItem {
+  id            String   @id @default(uuid())
+  name          String   // e.g. "PF payment", "ESI payment"
+  recurrenceType RecurrenceType @default(MONTHLY)
+  dayOfMonth    Int      // day the deadline falls on each cycle
+  owner         String   // email of whoever must act
+  leadTimeDays  Int      // notify this many days ahead of the deadline
+  lastNotifiedForDueDate DateTime?
+  createdAt     DateTime @default(now())
+}
