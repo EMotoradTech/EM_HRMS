@@ -9,7 +9,10 @@ if (process.env.DOCUMENT_ENGINE_MODE === "http") {
   if (!baseUrl || !token) {
     throw new Error("DOCUMENT_ENGINE_BASE_URL and DOCUMENT_ENGINE_TOKEN are required when DOCUMENT_ENGINE_MODE=http");
   }
-  setDocumentEngineClient(new HttpDocumentEngineClient(baseUrl, token));
+  const pollIntervalMs = process.env.DOCUMENT_ENGINE_POLL_INTERVAL_MS
+    ? parseInt(process.env.DOCUMENT_ENGINE_POLL_INTERVAL_MS, 10)
+    : undefined;
+  setDocumentEngineClient(new HttpDocumentEngineClient(baseUrl, token, pollIntervalMs));
 }
 // else: keep the default MockDocumentEngineClient from documentEngineClient.ts
 

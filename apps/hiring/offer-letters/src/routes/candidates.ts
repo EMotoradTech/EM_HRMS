@@ -6,7 +6,7 @@ export const candidatesRouter = Router();
 
 // Kick off the offer flow for a candidate marked "selected".
 candidatesRouter.post("/", async (req, res) => {
-  const { name, email, role, ctc, joiningDate, approvalChain } = req.body ?? {};
+  const { name, email, role, ctc, joiningDate, reportingManager, location, approvalChain } = req.body ?? {};
   if (!name || !email || !role) {
     return res.status(400).json({ error: "name, email, and role are required" });
   }
@@ -14,7 +14,16 @@ candidatesRouter.post("/", async (req, res) => {
     return res.status(400).json({ error: "approvalChain (non-empty array) is required" });
   }
 
-  const candidate = await startOfferForCandidate({ name, email, role, ctc, joiningDate, approvalChain });
+  const candidate = await startOfferForCandidate({
+    name,
+    email,
+    role,
+    ctc,
+    joiningDate,
+    reportingManager,
+    location,
+    approvalChain,
+  });
   res.status(201).json(candidate);
 });
 

@@ -6,37 +6,38 @@ import {
   DocumentStatusListener,
 } from "../types";
 
-// Stands in for Person A's document-engine (apps/foundations/document-engine)
-// per docs/contracts/document-engine-api.md, which is a mock this app wrote
-// itself because the real contract/implementation didn't exist yet — see
-// that file for why and what to do once it lands.
-//
-// Simulates the real engine's async behavior (approval chain clears →
-// engine sends the document → engine captures signature) by walking through
-// the documented lifecycle on setImmediate ticks and invoking the same
-// listener a webhook would call, instead of a real delay — callers don't
-// need real time to pass to see it complete.
+// Local dev/test stand-in for the real document-engine
+// (apps/foundations/document-engine), matching its actual behavior:
+// - POST /documents requires a non-empty approver list and returns a
+//   document already in PENDING_APPROVAL — there's no separate "submit"
+//   step, so createDocument starts the lifecycle itself.
+// - The engine never auto-advances past APPROVED: sending is a distinct
+//   action the caller must trigger (see the `send` method), matching
+//   apps/foundations/document-engine's POST /documents/:id/send.
+// - Signing is a real candidate/signer action against the engine, not
+//   something offer-letters (or this mock's caller) triggers — so the mock
+//   simulates a signer completing it shortly after send, purely so local
+//   dev/test can see the full pipeline complete without a live signer.
 export class MockDocumentEngineClient implements DocumentEngineClient {
   private documents = new Map<string, DocumentHandle>();
   private listeners = new Map<string, DocumentStatusListener[]>();
 
   async createDocument(_input: CreateDocumentInput): Promise<DocumentHandle> {
     const documentId = `doc_${Math.random().toString(36).slice(2, 10)}`;
-    const handle: DocumentHandle = { documentId, status: "DRAFT" };
+    const handle: DocumentHandle = { documentId, status: "PENDING_APPROVAL" };
     this.documents.set(documentId, handle);
+
+    // Simulate an approver clearing the (single-step, in this mock) chain —
+    // the real engine requires an actual POST .../approve per approver.
+    setImmediate(() => this.transitionTo(documentId, "APPROVED"));
+
     return handle;
   }
 
-  async submitForApproval(documentId: string): Promise<DocumentHandle> {
-    this.requireDocument(documentId);
-    this.transitionTo(documentId, "PENDING_APPROVAL");
-
-    // Simulate the approval chain clearing, then the engine sending the
-    // document and capturing the signature, each on its own tick.
-    setImmediate(() => this.transitionTo(documentId, "APPROVED"));
-    setImmediate(() => setImmediate(() => this.transitionTo(documentId, "SENT")));
-    setImmediate(() => setImmediate(() => setImmediate(() => this.transitionTo(documentId, "SIGNED"))));
-
+  async send(documentId: string): Promise<DocumentHandle> {
+    this.transitionTo(documentId, "SENT");
+    // Simulate a candidate signing shortly after receiving the document.
+    setImmediate(() => this.transitionTo(documentId, "SIGNED"));
     return this.documents.get(documentId)!;
   }
 

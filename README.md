@@ -32,13 +32,17 @@ npm run dev
 npm test    # from repo root, runs every workspace's Jest suite
 ```
 
-## Known open items (as of this merge)
+## Known open items
 
-- **`apps/hiring/offer-letters` is not yet wired to the real `apps/foundations/document-engine`.** It was built against its own draft mock of the contract (before Person A's real one was published) — endpoint shapes, status names, and auth differ between the two. See `docs/contracts/document-engine-api.md` (the real, authoritative contract) vs. `apps/hiring/offer-letters/src/services/documentEngineClient.ts` (the in-memory mock it currently runs against). Swapping in a real `HttpDocumentEngineClient` against the live engine is the next integration task.
 - **`apps/hiring/resume-screening`'s Naukri auto-pull is unvalidated** — company Naukri API/partner access was never confirmed. It currently runs on the bulk-upload fallback only (`src/services/naukriClient.ts` documents what to build once access is resolved).
 - **`apps/onboarding/induction-portal` and `apps/onboarding/product-training` ship backend APIs only** — no React frontend yet, contrary to the brief's UI requirement. Both are structured so a frontend can be built directly against the existing API.
 - Content for onboarding apps (policies, culture book, product specs) is placeholder — real content is HR's deliverable, loaded from `content/` files with no code change needed once supplied.
+- `apps/hiring/offer-letters`'s approval chain (who approves offers, in what order) is passed in on every request rather than coming from a config/org-chart lookup.
 
-## QC status (this merge)
+## Resolved since the initial merge
 
-All 11 apps: clean `npm install`, all Jest suites passing — 100 tests total across the monorepo. Verified locally before push; see individual app READMEs for per-app test counts.
+- **`apps/hiring/offer-letters` is now wired to the real `apps/foundations/document-engine`.** It originally ran against its own draft mock (endpoint shapes, status names, and auth all differed from Person A's real contract). `HttpDocumentEngineClient` now calls the real endpoints per `docs/contracts/document-engine-api.md`, correctly: creates a document already in `PENDING_APPROVAL` (the engine has no separate "submit" step), explicitly calls `POST /documents/:id/send` once approved (the engine never auto-sends), and polls `GET /documents/:id/status` in place of a webhook (the engine doesn't have one). Set `DOCUMENT_ENGINE_MODE=http` to use it — see that app's own README.
+
+## QC status
+
+All 11 apps: clean `npm install`, all Jest suites passing — 110 tests total across the monorepo (verified locally, including a full re-run after the document-engine integration fix above). See individual app READMEs for per-app test counts. No live end-to-end run against a real Postgres/document-engine pair has been done yet in this environment (no Docker/Postgres available here) — the HTTP client is verified against document-engine's actual route/service code via a mocked `fetch`, and both apps' TypeScript compiles clean, but an actual two-service run is still worth doing before this carries real offer letters.
