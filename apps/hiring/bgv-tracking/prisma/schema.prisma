@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CheckType {
+  EDUCATION
+  EMPLOYMENT
+  ADDRESS
+  IDENTITY
+  CRIMINAL_RECORD
+  REFERENCE
+}
+
+enum CheckStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  FLAGGED
+  FAILED
+}
+
+enum OverallStatus {
+  IN_PROGRESS
+  COMPLETE
+  BLOCKED
+}
+
+model BgvCandidate {
+  id               String        @id @default(cuid())
+  name             String
+  email            String
+  stakeholderEmail String?
+  overallStatus    OverallStatus @default(IN_PROGRESS)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  checks    BgvCheck[]
+  documents BgvDocument[]
+}
+
+model BgvCheck {
+  id          String      @id @default(cuid())
+  candidateId String
+  candidate   BgvCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  type        CheckType
+  status      CheckStatus @default(PENDING)
+  notes       String?
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([candidateId, type])
+  @@index([candidateId])
+}
+
+model BgvDocument {
+  id          String       @id @default(cuid())
+  candidateId String
+  candidate   BgvCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  checkType   CheckType
+  fileName    String
+  uploadedAt  DateTime     @default(now())
+
+  @@index([candidateId])
+}

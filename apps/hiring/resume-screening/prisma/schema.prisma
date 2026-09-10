@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model JobDescription {
+  id                     String   @id @default(cuid())
+  title                  String
+  rawText                String?
+  requiredSkills         String[]
+  preferredSkills        String[]
+  minExperienceYears     Float?
+  maxExperienceYears     Float?
+  requiredQualifications String[]
+  keywords               String[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  candidates     CandidateProfile[]
+  shortlistSends ShortlistSend[]
+}
+
+model CandidateProfile {
+  id                   String   @id @default(cuid())
+  jdId                 String
+  jd                   JobDescription @relation(fields: [jdId], references: [id], onDelete: Cascade)
+  name                 String?
+  email                String?
+  phone                String?
+  sourceFileName       String
+  rawText              String
+  extractedSkills      String[]
+  totalExperienceYears Float?
+  qualifications       String[]
+  score                Float?
+  scoreBreakdown       Json?
+  rank                 Int?
+  createdAt            DateTime @default(now())
+
+  @@index([jdId])
+  @@index([jdId, rank])
+}
+
+model ShortlistSend {
+  id        String   @id @default(cuid())
+  jdId      String
+  jd        JobDescription @relation(fields: [jdId], references: [id], onDelete: Cascade)
+  sentTo    String[]
+  payload   Json
+  sentAt    DateTime @default(now())
+
+  @@index([jdId])
+}
