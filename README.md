@@ -45,4 +45,10 @@ npm test    # from repo root, runs every workspace's Jest suite
 
 ## QC status
 
-All 11 apps: clean `npm install`, all Jest suites passing — 110 tests total across the monorepo (verified locally, including a full re-run after the document-engine integration fix above). See individual app READMEs for per-app test counts. No live end-to-end run against a real Postgres/document-engine pair has been done yet in this environment (no Docker/Postgres available here) — the HTTP client is verified against document-engine's actual route/service code via a mocked `fetch`, and both apps' TypeScript compiles clean, but an actual two-service run is still worth doing before this carries real offer letters.
+All 11 apps: clean `npm install`, all Jest suites passing — 110 tests total across the monorepo, re-verified after every fix below.
+
+**Live end-to-end run, done.** document-engine and offer-letters were actually started against a real local Postgres and driven through the full pipeline over HTTP: candidate created → real offer letter rendered (no placeholder gaps) → both approvers approved → offer-letters auto-sent on observing `APPROVED` → signed as the candidate → offer-letters observed `SIGNED` and moved to `ONBOARDING_READY`. That run caught and fixed a real bug (below) that no unit test could have.
+
+### Fixed by the live run: Prisma client collision across workspace apps
+
+npm workspaces hoist all 11 apps' `@prisma/client` to one shared root `node_modules`. Every app's `prisma generate` was overwriting that same shared client, so running `prisma migrate dev` for a second app silently broke whichever app generated first (`Property 'documentInstance' does not exist...` at runtime) — latent in every submission, since nobody had run two apps' migrations back to back before. Fixed by giving every app its own `output` path in `schema.prisma` so each gets an isolated generated client. No unit test caught this because none of the 110 tests touch a real Prisma client — worth keeping in mind before assuming green tests mean a clean local run.
