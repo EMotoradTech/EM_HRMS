@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { VaultDocumentMeta } from "../lib/accessControl";
-import { AuditRecordInput, VaultRepository } from "./vaultService";
+import { AuditRecordInput, VaultDocumentListItem, VaultRepository } from "./vaultService";
 
 export class PrismaVaultRepository implements VaultRepository {
   constructor(private prisma: PrismaClient) {}
@@ -65,6 +65,21 @@ export class PrismaVaultRepository implements VaultRepository {
       action: e.action as any,
       allowed: e.allowed,
       reason: e.reason ?? "",
+    }));
+  }
+
+  async listDocuments(): Promise<VaultDocumentListItem[]> {
+    const docs = await this.prisma.vaultDocument.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { sharedWith: true },
+    });
+    return docs.map((doc: (typeof docs)[number]) => ({
+      id: doc.id,
+      owner: doc.owner,
+      documentType: doc.documentType,
+      associatedPerson: doc.associatedPerson ?? undefined,
+      createdAt: doc.createdAt,
+      sharedWith: doc.sharedWith.map((g: (typeof doc.sharedWith)[number]) => g.granteeEmail),
     }));
   }
 }

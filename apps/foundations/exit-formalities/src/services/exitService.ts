@@ -125,4 +125,10 @@ export class ExitService {
     const record = await this.prisma.exitCase.findUniqueOrThrow({ where: { id: exitCaseId } });
     return toEngineCase(record);
   }
+
+  /** Every exit case, most recent first — for an admin/list view. */
+  async listAll() {
+    const records = await this.prisma.exitCase.findMany({ orderBy: { createdAt: "desc" } });
+    return records.map(toEngineCase);
+  }
 }

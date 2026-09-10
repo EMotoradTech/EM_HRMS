@@ -2,6 +2,7 @@ import { checkAccess } from "../src/lib/accessControl";
 import {
   VaultService,
   VaultRepository,
+  VaultDocumentListItem,
   AuditRecordInput,
   AccessDeniedError,
 } from "../src/services/vaultService";
@@ -9,6 +10,7 @@ import { VaultDocumentMeta } from "../src/lib/accessControl";
 
 class InMemoryVaultRepository implements VaultRepository {
   documents = new Map<string, VaultDocumentMeta>();
+  listMeta = new Map<string, { documentType: string; associatedPerson?: string; createdAt: Date }>();
   audit: AuditRecordInput[] = [];
   private counter = 0;
 
@@ -28,7 +30,18 @@ class InMemoryVaultRepository implements VaultRepository {
       sharedWith: [],
     };
     this.documents.set(doc.id, doc);
+    this.listMeta.set(doc.id, {
+      documentType: input.documentType,
+      associatedPerson: input.associatedPerson,
+      createdAt: new Date(),
+    });
     return doc;
+  }
+
+  async listDocuments(): Promise<VaultDocumentListItem[]> {
+    return [...this.documents.values()]
+      .map((doc) => ({ ...doc, ...this.listMeta.get(doc.id)! }))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   async shareDocument(documentId: string, granteeEmail: string) {
@@ -137,5 +150,22 @@ describe("VaultService", () => {
       doc.id
     );
     expect(result.id).toBe(doc.id);
+  });
+
+  it("lists documents for HR but denies a non-HR role", async () => {
+    const repo = new InMemoryVaultRepository();
+    const service = new VaultService(repo);
+    await service.store(
+      { email: "hr@emotorad.com", role: "HR" },
+      { documentType: "signed-offer-letter", storageRef: "s3://.../a.pdf" }
+    );
+
+    const list = await service.list({ email: "hr@emotorad.com", role: "HR" });
+    expect(list).toHaveLength(1);
+    expect(list[0].documentType).toBe("signed-offer-letter");
+
+    await expect(
+      service.list({ email: "candidate@example.com", role: "CANDIDATE" })
+    ).rejects.toThrow(AccessDeniedError);
   });
 });

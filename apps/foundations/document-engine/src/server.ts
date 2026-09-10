@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { documentsRouter } from "./routes/documents";
@@ -7,6 +8,7 @@ import { LogEmailSender } from "./lib/emailSender";
 import { getESignProvider } from "./lib/esign";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // Simple shared-secret auth for internal service-to-service calls

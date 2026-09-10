@@ -11,6 +11,15 @@ function actorFromHeaders(req: Request) {
 export function vaultRouter(service: VaultService): Router {
   const router = Router();
 
+  router.get("/vault/documents", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const actor = actorFromHeaders(req);
+      res.json(await service.list(actor));
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.post("/vault/documents", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const actor = actorFromHeaders(req);

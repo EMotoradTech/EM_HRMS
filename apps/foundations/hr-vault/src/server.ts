@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { vaultRouter } from "./routes/vault";
@@ -6,6 +7,7 @@ import { VaultService } from "./services/vaultService";
 import { PrismaVaultRepository } from "./services/prismaVaultRepository";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {

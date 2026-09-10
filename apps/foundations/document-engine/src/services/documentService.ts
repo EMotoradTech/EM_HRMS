@@ -203,6 +203,26 @@ export class DocumentService {
   async getStatus(documentId: string) {
     return this.loadEngineDoc(documentId);
   }
+
+  /** Every document instance, most recent first — for an admin/list view. */
+  async listDocuments() {
+    const records = await this.prisma.documentInstance.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { approvals: true },
+    });
+    return records.map((r: (typeof records)[number]) => ({
+      id: r.id,
+      templateType: r.templateType,
+      recipientEmail: r.recipientEmail,
+      status: r.status,
+      createdAt: r.createdAt,
+      approvals: r.approvals.map((a: (typeof r.approvals)[number]) => ({
+        order: a.order,
+        approverEmail: a.approverEmail,
+        status: a.status,
+      })),
+    }));
+  }
 }
 
 export { ApprovalEngineError };

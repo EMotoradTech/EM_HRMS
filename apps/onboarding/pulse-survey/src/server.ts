@@ -1,9 +1,11 @@
+import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { PulseSurveyService } from './service';
 import { DuplicateSubmissionError } from './responseRepository';
 
 export function createServer(service: PulseSurveyService) {
   const app = express();
+  app.use(cors());
   app.use(express.json());
 
   app.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));

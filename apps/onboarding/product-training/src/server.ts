@@ -1,8 +1,10 @@
+import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { TrainingService } from './service';
 
 export function createServer(service: TrainingService) {
   const app = express();
+  app.use(cors());
   app.use(express.json());
 
   app.get('/health', (_req: Request, res: Response) => res.json({ ok: true }));

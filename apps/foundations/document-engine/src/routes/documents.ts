@@ -4,6 +4,14 @@ import { DocumentService, ApprovalEngineError } from "../services/documentServic
 export function documentsRouter(service: DocumentService): Router {
   const router = Router();
 
+  router.get("/documents", async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json(await service.listDocuments());
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.post("/documents", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { templateType, data, recipientEmail, approverEmails } = req.body;

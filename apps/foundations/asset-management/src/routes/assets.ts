@@ -4,6 +4,14 @@ import { AssetService, AssetStateError } from "../services/assetService";
 export function assetsRouter(service: AssetService): Router {
   const router = Router();
 
+  router.get("/assets", async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json(await service.listAll());
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.post("/assets", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { type, identifier } = req.body;

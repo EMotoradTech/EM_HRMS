@@ -12,6 +12,12 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 export const jobDescriptionsRouter = Router();
 
+// Every JD, most recent first — for an admin/list view.
+jobDescriptionsRouter.get("/", async (_req, res) => {
+  const jds = await prisma.jobDescription.findMany({ orderBy: { createdAt: "desc" } });
+  res.json(jds);
+});
+
 // Create a JD either from structured fields or from rawText (parsed heuristically).
 jobDescriptionsRouter.post("/", async (req, res) => {
   const { title, rawText, ...structured } = req.body ?? {};

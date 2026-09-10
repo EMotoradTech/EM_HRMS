@@ -2,7 +2,7 @@
   "name": "@em-hrms/induction-portal",
   "version": "0.1.0",
   "private": true,
-  "description": "New-joiner induction self-serve portal — policies, culture book, company presentation, HR event/leave rules.",
+  "description": "New-joiner induction self-serve portal \u2014 policies, culture book, company presentation, HR event/leave rules.",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
@@ -16,7 +16,8 @@
     "@prisma/client": "^5.18.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
@@ -26,6 +27,7 @@
     "prisma": "^5.18.0",
     "ts-jest": "^29.2.3",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "@types/cors": "^2.8.17"
   }
 }

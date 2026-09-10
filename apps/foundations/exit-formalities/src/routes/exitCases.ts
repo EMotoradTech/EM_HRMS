@@ -4,6 +4,14 @@ import { ExitService } from "../services/exitService";
 export function exitCasesRouter(service: ExitService): Router {
   const router = Router();
 
+  router.get("/exit-cases", async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.json(await service.listAll());
+    } catch (err) {
+      next(err);
+    }
+  });
+
   router.post("/exit-cases", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { employeeEmail, designation, lastWorkingDay, approverEmails } = req.body;

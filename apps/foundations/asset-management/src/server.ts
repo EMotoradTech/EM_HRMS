@@ -1,10 +1,12 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { assetsRouter } from "./routes/assets";
 import { AssetService } from "./services/assetService";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {

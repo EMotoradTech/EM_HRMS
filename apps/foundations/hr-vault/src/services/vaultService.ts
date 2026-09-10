@@ -2,6 +2,12 @@ import { checkAccess, Actor, VaultAction, VaultDocumentMeta } from "../lib/acces
 
 export class AccessDeniedError extends Error {}
 
+export interface VaultDocumentListItem extends VaultDocumentMeta {
+  documentType: string;
+  associatedPerson?: string;
+  createdAt: Date;
+}
+
 export interface AuditRecordInput {
   documentId: string;
   actorEmail: string;
@@ -29,6 +35,7 @@ export interface VaultRepository {
   shareDocument(documentId: string, granteeEmail: string): Promise<void>;
   deleteDocument(documentId: string): Promise<void>;
   getAuditLog(documentId: string): Promise<AuditRecordInput[]>;
+  listDocuments(): Promise<VaultDocumentListItem[]>;
 }
 
 export class VaultService {
@@ -104,5 +111,13 @@ export class VaultService {
 
   async getAuditLog(documentId: string): Promise<AuditRecordInput[]> {
     return this.repo.getAuditLog(documentId);
+  }
+
+  /** Every document in the vault — HR-only, same default-deny rule as everything else here. */
+  async list(actor: Actor): Promise<VaultDocumentListItem[]> {
+    if (actor.role !== "HR") {
+      throw new AccessDeniedError("Only HR can list vault documents");
+    }
+    return this.repo.listDocuments();
   }
 }

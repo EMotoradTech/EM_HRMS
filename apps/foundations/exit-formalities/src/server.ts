@@ -1,4 +1,5 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { PrismaClient } from "@prisma/client";
 import { exitCasesRouter } from "./routes/exitCases";
@@ -6,6 +7,7 @@ import { ExitService } from "./services/exitService";
 import { DocumentEngineClient, AssetManagementClient } from "./lib/clients";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {

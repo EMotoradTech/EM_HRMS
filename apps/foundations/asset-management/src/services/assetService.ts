@@ -86,6 +86,14 @@ export class AssetService {
   async assetsNeverReturned() {
     return this.prisma.asset.findMany({ where: { status: "ISSUED" } });
   }
+
+  /** Every asset, most recent first — for an admin/list view. */
+  async listAll() {
+    return this.prisma.asset.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { issuances: true },
+    });
+  }
 }
 
 export { AssetStateError };
