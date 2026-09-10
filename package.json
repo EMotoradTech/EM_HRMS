@@ -4,7 +4,8 @@
   "workspaces": [
     "apps/foundations/*",
     "apps/hiring/*",
-    "apps/onboarding/*"
+    "apps/onboarding/*",
+    "apps/admin-dashboard"
   ],
   "scripts": {
     "test": "npm test --workspaces --if-present",
